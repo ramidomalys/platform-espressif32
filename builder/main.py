@@ -159,7 +159,7 @@ env.Replace(
         "--port", '"$UPLOAD_PORT"'
     ],
     ERASECMD='"$PYTHONEXE" "$OBJCOPY" $ERASEFLAGS erase_flash',
-
+    MKLITTLEFSTOOL = "mklittlefs",
     MKSPIFFSTOOL="mkspiffs_${PIOPLATFORM}_" + ("espidf" if "espidf" in env.subst(
         "$PIOFRAMEWORK") else "${PIOFRAMEWORK}"),
     ESP32_SPIFFS_IMAGE_NAME=env.get("ESP32_SPIFFS_IMAGE_NAME", "spiffs"),
@@ -190,7 +190,7 @@ env.Append(
         ),
         DataToBin=Builder(
             action=env.VerboseAction(" ".join([
-                '"$MKSPIFFSTOOL"',
+                '"$MKLITTLEFSTOOL"',
                 "-c", "$SOURCES",
                 "-p", "$SPIFFS_PAGE",
                 "-b", "$SPIFFS_BLOCK",
