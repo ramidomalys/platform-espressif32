@@ -159,7 +159,7 @@ env.Replace(
         "--port", '"$UPLOAD_PORT"'
     ],
     ERASECMD='"$PYTHONEXE" "$OBJCOPY" $ERASEFLAGS erase_flash',
-    MKLITTLEFSTOOL = "mklittlefs",
+    MKLITTLEFSTOOL="mklittlefs",
     MKSPIFFSTOOL="mkspiffs_${PIOPLATFORM}_" + ("espidf" if "espidf" in env.subst(
         "$PIOFRAMEWORK") else "${PIOFRAMEWORK}"),
     ESP32_SPIFFS_IMAGE_NAME=env.get("ESP32_SPIFFS_IMAGE_NAME", "spiffs"),
@@ -315,7 +315,7 @@ elif upload_protocol == "esptool":
     for image in env.get("FLASH_EXTRA_IMAGES", []):
         env.Append(UPLOADERFLAGS=[image[0], env.subst(image[1])])
     env.Append(UPLOADERFLAGS=board.get("upload.offset_address", "0x10000"))
-    
+
     if "uploadfs" in COMMAND_LINE_TARGETS:
         env.Replace(
             UPLOADERFLAGS=[
@@ -370,17 +370,24 @@ elif upload_protocol in debug_tools:
     openocd_args = ["-d%d" % (2 if int(ARGUMENTS.get("PIOVERBOSE", 0)) else 1)]
     openocd_args.extend(
         debug_tools.get(upload_protocol).get("server").get("arguments", []))
-    openocd_args.extend([
-        "-c",
-        "program_esp32 {{$SOURCE}} %s verify" %
-        board.get("upload.offset_address", "0x10000")
-    ])
-    for image in env.get("FLASH_EXTRA_IMAGES", []):
+    if "uploadfs" in COMMAND_LINE_TARGETS:
         openocd_args.extend([
             "-c",
-            'program_esp32 {{%s}} %s verify' %
-            (_to_unix_slashes(image[1]), image[0])
+            "program_esp32 {{$SOURCE}} $SPIFFS_START verify"
         ])
+    else:
+        openocd_args.extend([
+            "-d3",
+            "-c",
+            "program_esp32 {{$SOURCE}} %s verify" %
+            board.get("upload.offset_address", "0x10000")
+        ])
+        for image in env.get("FLASH_EXTRA_IMAGES", []):
+            openocd_args.extend([
+                "-c",
+                'program_esp32 {{%s}} %s verify' %
+                (_to_unix_slashes(image[1]), image[0])
+            ])
     openocd_args.extend(["-c", "reset run; shutdown"])
     openocd_args = [
         f.replace(
@@ -402,7 +409,8 @@ else:
     sys.stderr.write("Warning! Unknown upload protocol %s\n" % upload_protocol)
 
 env.AddPlatformTarget("upload", target_firm, upload_actions, "Upload")
-env.AddPlatformTarget("uploadfs", target_firm, upload_actions, "Upload Filesystem Image")
+env.AddPlatformTarget("uploadfs", target_firm,
+                      upload_actions, "Upload Filesystem Image")
 env.AddPlatformTarget(
     "uploadfsota", target_firm, upload_actions, "Upload Filesystem Image OTA")
 
@@ -414,7 +422,8 @@ env.AddPlatformTarget(
     "erase",
     None,
     [
-        env.VerboseAction(env.AutodetectUploadPort, "Looking for serial port..."),
+        env.VerboseAction(env.AutodetectUploadPort,
+                          "Looking for serial port..."),
         env.VerboseAction("$ERASECMD", "Erasing...")
     ],
     "Erase Flash",

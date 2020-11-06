@@ -28,7 +28,8 @@ class Espressif32Platform(PlatformBase):
                 self, variables, targets)
 
         board_config = self.board_config(variables.get("board"))
-        mcu = variables.get("board_build.mcu", board_config.get("build.mcu", "esp32"))
+        mcu = variables.get("board_build.mcu",
+                            board_config.get("build.mcu", "esp32"))
         frameworks = variables.get("pioframework", [])
         if "buildfs" in targets:
             self.packages['tool-mkspiffs']['optional'] = False
@@ -173,7 +174,7 @@ class Espressif32Platform(PlatformBase):
             for item in flash_images
         ]
         load_cmds.append(
-            'monitor program_esp32 "{%s.bin}" 0x10000 verify'
+            'monitor program_esp32 "{%s.bin}" 0x20000 verify'
             % fs.to_unix_path(ide_data["prog_path"][:-4])
         )
         debug_options["load_cmds"] = load_cmds
