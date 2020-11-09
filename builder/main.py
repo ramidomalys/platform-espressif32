@@ -314,7 +314,7 @@ elif upload_protocol == "esptool":
     )
     for image in env.get("FLASH_EXTRA_IMAGES", []):
         env.Append(UPLOADERFLAGS=[image[0], env.subst(image[1])])
-    env.Append(UPLOADERFLAGS=board.get("upload.offset_address", "0x20000"))
+    env.Append(UPLOADERFLAGS=board.get("upload.offset_address", "0x10000"))
     
     if "uploadfs" in COMMAND_LINE_TARGETS:
         env.Replace(
